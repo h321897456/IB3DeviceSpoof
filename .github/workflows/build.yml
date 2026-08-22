@@ -18,10 +18,12 @@ jobs:
         sudo curl -L -o "$ARC_DIR/libarclite_iphoneos.a" https://github.com/kamyarelyasi/Libarclite-Files/raw/master/libarclite_iphoneos.a
     - name: 编译 dylib    
       run: |
-        clang -dynamiclib -arch arm64 -target arm64-apple-ios \
+         clang -arch arm64 -dynamiclib \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
+          -miphoneos-version-min=16.0 \
           -framework Foundation \
           -fobjc-arc \
+          -x objective-c \
           -o IB3DeviceSpoof.dylib \
           IB3DeviceSpoof.m fishhook.c
     
