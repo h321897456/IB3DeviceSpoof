@@ -1,4 +1,4 @@
-name: Build IB3DeviceSpoof dylib
+name: Build IB3DeviceSpoof v3 dylib
 
 on:
   push:
@@ -12,26 +12,21 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: 修复 libarclite 缺失
-      run: |
-        ARC_DIR="/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/arc"
-        sudo mkdir -p "$ARC_DIR"
-        sudo curl -L -o "$ARC_DIR/libarclite_iphoneos.a" https://github.com/kamyarelyasi/Libarclite-Files/raw/master/libarclite_iphoneos.a
-
     - name: 下载最新版 fishhook
       run: |
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.c -o fishhook.c
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.h -o fishhook.h
 
-    - name: 编译 dylib
+    - name: 编译 dylib (v3 诊断版)
       run: |
-        clang -arch arm64 -dynamiclib \
+        clang -dynamiclib -arch arm64 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -miphoneos-version-min=16.0 \
           -framework Foundation \
+          -framework UIKit \
           -fobjc-arc \
           -o IB3DeviceSpoof.dylib \
-          IB3DeviceSpoof.m fishhook.c
+          IB3DeviceSpoof_v3.m fishhook.c
 
     - name: 验证编译结果
       run: |
