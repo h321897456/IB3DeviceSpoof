@@ -1,0 +1,32 @@
+name: Build IB3DeviceSpoof dylib
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: 编译 dylib
+      run: |
+        clang -shared -arch arm64 \
+          -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
+          -framework Foundation \
+          -o IB3DeviceSpoof.dylib \
+          IB3DeviceSpoof.m fishhook.c
+    
+    - name: 验证编译结果
+      run: |
+        file IB3DeviceSpoof.dylib
+        ls -lh IB3DeviceSpoof.dylib
+    
+    - name: 上传产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: IB3DeviceSpoof.dylib
+        path: IB3DeviceSpoof.dylib
