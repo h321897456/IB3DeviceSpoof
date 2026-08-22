@@ -24,6 +24,7 @@ jobs:
           -miphoneos-version-min=16.0 \
           -framework Foundation \
           -framework UIKit \
+          -framework CoreGraphics \
           -fobjc-arc \
           -o IB3DeviceSpoof.dylib \
           IB3DeviceSpoof_v7.m fishhook.c
