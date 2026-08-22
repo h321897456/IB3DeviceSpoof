@@ -1,4 +1,4 @@
-name: Build IB3DeviceSpoof v3 dylib
+name: Build IB3DeviceSpoof v5 dylib
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.c -o fishhook.c
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.h -o fishhook.h
 
-    - name: 编译 dylib (v3 诊断版)
+    - name: 编译 dylib (v5 UIScreen拦截版)
       run: |
         clang -dynamiclib -arch arm64 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
@@ -26,7 +26,7 @@ jobs:
           -framework UIKit \
           -fobjc-arc \
           -o IB3DeviceSpoof.dylib \
-          IB3DeviceSpoof_v3.m fishhook.c
+          IB3DeviceSpoof_v5.m fishhook.c
 
     - name: 验证编译结果
       run: |
