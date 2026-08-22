@@ -14,9 +14,10 @@ jobs:
     
     - name: 编译 dylib
       run: |
-        clang -shared -arch arm64 \
+        clang -dynamiclib -arch arm64 -target arm64-apple-ios \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -framework Foundation \
+          -fobjc-arc \
           -o IB3DeviceSpoof.dylib \
           IB3DeviceSpoof.m fishhook.c
     
