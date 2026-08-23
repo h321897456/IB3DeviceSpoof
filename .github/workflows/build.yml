@@ -27,7 +27,7 @@ jobs:
           -framework UIKit \
           -fobjc-arc \
           -o IB3DeviceSpoof.dylib \
-          IB3DeviceSpoof_v9.m fishhook.c
+          IB3DeviceSpoof_v10.m fishhook.c
 
     - name: 验证编译结果
       run: |
