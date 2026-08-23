@@ -21,7 +21,8 @@ jobs:
       run: |
         clang -dynamiclib -arch arm64 \
           -DGLES_SILENCE_DEPRECATION \
-          -DSPOOFED_CPU_COUNT=4 \
+          -DGL_TEXTURE_WIDTH=0x1000 \
+          -DGL_TEXTURE_HEIGHT=0x1001 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -miphoneos-version-min=16.0 \
           -framework Foundation \
