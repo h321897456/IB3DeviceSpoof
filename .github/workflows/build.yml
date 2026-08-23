@@ -20,6 +20,8 @@ jobs:
     - name: 编译 dylib (恶灵全屏 v20 - FBO 诊断版)
       run: |
         clang -dynamiclib -arch arm64 \
+          -DGLES_SILENCE_DEPRECATION \
+          -DSPOOFED_CPU_COUNT=4 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -miphoneos-version-min=16.0 \
           -framework Foundation \
