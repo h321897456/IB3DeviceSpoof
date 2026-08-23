@@ -1,4 +1,4 @@
-name: Build IB3DeviceSpoof v11 dylib
+name: Build IB3DeviceSpoof v12 dylib
 
 on:
   push:
@@ -17,22 +17,24 @@ jobs:
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.c -o fishhook.c
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.h -o fishhook.h
 
-    - name: 编译 dylib (v11 iPhone 13 Pro 真实分辨率版)
+    - name: 编译 dylib (v12 底层 OpenGL 渲染版)
       run: |
         clang -dynamiclib -arch arm64 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -miphoneos-version-min=16.0 \
           -framework Foundation \
-          -framework CoreGraphics \
           -framework UIKit \
+          -framework QuartzCore \
+          -framework OpenGLES \
           -fobjc-arc \
           -o IB3DeviceSpoof.dylib \
-          IB3DeviceSpoof_v11.m fishhook.c
+          IB3DeviceSpoof_v12.m fishhook.c
 
     - name: 验证编译结果
       run: |
         file IB3DeviceSpoof.dylib
         ls -lh IB3DeviceSpoof.dylib
+        otool -L IB3DeviceSpoof.dylib
 
     - name: 上传产物
       uses: actions/upload-artifact@v4
