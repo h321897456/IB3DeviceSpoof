@@ -16,19 +16,11 @@ jobs:
       run: |
         curl -L https://raw.githubusercontent.com/facebook/fishhook/master/fishhook.c -o fishhook.c
         curl -L https://raw.githubusercontent.com/facebook/fishhook/master/fishhook.h -o fishhook.h
-        ls -la fishhook.*
-
-    - name: 检查源代码
-      run: |
-        head -20 IB3DeviceSpoof_v19.m
 
     - name: 编译 dylib (v19 EAGLView 深度 Hook 版)
       run: |
-        # 单独编译 fishhook.c（纯C，不带ARC）
-        clang -c -arch arm64 -fPIC -o fishhook.o fishhook.c
-        
-        # 编译 IB3DeviceSpoof_v19.m（带ARC）
-        clang -c -arch arm64 -fobjc-arc \
+        clang -dynamiclib -arch arm64 \
+          -DGLES_SILENCE_DEPRECATION \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -miphoneos-version-min=16.0 \
           -framework Foundation \
@@ -36,25 +28,14 @@ jobs:
           -framework UIKit \
           -framework QuartzCore \
           -framework OpenGLES \
-          -o IB3DeviceSpoof_v19.o IB3DeviceSpoof_v19.m
-        
-        # 链接为 dylib
-        ld -dynamiclib -arch arm64 \
-          -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
-          -miphoneos-version-min=16.0 \
-          -framework Foundation \
-          -framework CoreGraphics \
-          -framework UIKit \
-          -framework QuartzCore \
-          -framework OpenGLES \
+          -fobjc-arc \
+          -fPIC \
           -o IB3DeviceSpoof.dylib \
-          IB3DeviceSpoof_v19.o fishhook.o \
-          -install_name @rpath/IB3DeviceSpoof.dylib
+          IB3DeviceSpoof_v19.m fishhook.c
 
     - name: 验证编译结果
       run: |
         file IB3DeviceSpoof.dylib
-        otool -L IB3DeviceSpoof.dylib
         ls -lh IB3DeviceSpoof.dylib
 
     - name: 上传产物
