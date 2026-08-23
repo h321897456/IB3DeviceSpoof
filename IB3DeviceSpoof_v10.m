@@ -1,6 +1,6 @@
-﻿//
-//  IB3DeviceSpoof_v9.m
-//  无尽之剑3 设备型号欺骗 Tweak（iPhone X 版 - 含屏幕伪装）
+//
+//  IB3DeviceSpoof_v10.m
+//  无尽之剑3 设备型号欺骗 Tweak（iPhone X 版 - 含屏幕伪装 - ARC 兼容）
 //
 
 #import <Foundation/Foundation.h>
@@ -14,10 +14,10 @@
 #define CONSTRUCTOR_PRIORITY 101
 
 // ====== iPhone X 屏幕参数 ======
-// 横屏模式：宽高互换
-static const CGSize kSpoofedBounds = {812.0, 375.0};
-static const CGSize kSpoofedNativeBounds = {2436.0, 1125.0};
-static const CGSize kSpoofedModeSize = {2436.0, 1125.0};
+// 竖屏模式：bounds 667x375, nativeBounds 2001x1125
+static const CGSize kSpoofedBoundsSize = CGSizeMake(667.0, 375.0);
+static const CGSize kSpoofedNativeSize = CGSizeMake(2001.0, 1125.0);
+static const CGSize kSpoofedModeSize = CGSizeMake(2001.0, 1125.0);
 static const CGFloat kSpoofedScale = 3.0;
 static const CGFloat kSpoofedNativeScale = 3.0;
 
@@ -26,11 +26,13 @@ static int (*original_sysctl)(int *name, u_int namelen, void *oldp, size_t *oldl
 static int (*original_uname)(struct utsname *name);
 
 static IMP original_uid_model = NULL;
-static IMP original_screen_bounds = NULL;
-static IMP original_screen_nativeBounds = NULL;
-static IMP original_screen_scale = NULL;
-static IMP original_screen_nativeScale = NULL;
-static IMP original_screen_currentMode = NULL;
+
+// UIScreen 原始方法指针
+static CGRect (*orig_UIScreen_bounds)(id, SEL);
+static CGRect (*orig_UIScreen_nativeBounds)(id, SEL);
+static CGFloat (*orig_UIScreen_scale)(id, SEL);
+static CGFloat (*orig_UIScreen_nativeScale)(id, SEL);
+static id (*orig_UIScreen_currentMode)(id, SEL);
 
 static int g_sysctlbyname_count = 0;
 
@@ -89,29 +91,33 @@ int replaced_uname(struct utsname *name) {
     return result;
 }
 
-// ========== UIScreen hook ==========
+// ========== UIScreen hook (ARC 兼容) ==========
 
-static CGRect replaced_screen_bounds(id self, SEL _cmd) {
-    return CGRectMake(0, 0, kSpoofedBounds.width, kSpoofedBounds.height);
+static CGRect hooked_UIScreen_bounds(id self, SEL _cmd) {
+    CGRect r = orig_UIScreen_bounds(self, _cmd);
+    r.size = kSpoofedBoundsSize;
+    return r;
 }
 
-static CGRect replaced_screen_nativeBounds(id self, SEL _cmd) {
-    return CGRectMake(0, 0, kSpoofedNativeBounds.width, kSpoofedNativeBounds.height);
+static CGRect hooked_UIScreen_nativeBounds(id self, SEL _cmd) {
+    CGRect r = orig_UIScreen_nativeBounds(self, _cmd);
+    r.size = kSpoofedNativeSize;
+    return r;
 }
 
-static CGFloat replaced_screen_scale(id self, SEL _cmd) {
+static CGFloat hooked_UIScreen_scale(id self, SEL _cmd) {
     return kSpoofedScale;
 }
 
-static CGFloat replaced_screen_nativeScale(id self, SEL _cmd) {
+static CGFloat hooked_UIScreen_nativeScale(id self, SEL _cmd) {
     return kSpoofedNativeScale;
 }
 
-static id replaced_screen_currentMode(id self, SEL _cmd) {
-    // 模拟一个 UIScreenMode 对象
-    Class UIScreenModeClass = objc_getClass("UIScreenMode");
-    id mode = [[UIScreenModeClass alloc] init];
-    object_setInstanceVariable(mode, "_size", (void *)&kSpoofedModeSize);
+static id hooked_UIScreen_currentMode(id self, SEL _cmd) {
+    id mode = orig_UIScreen_currentMode(self, _cmd);
+    if (mode) {
+        [mode setValue:[NSValue valueWithCGSize:kSpoofedModeSize] forKey:@"size"];
+    }
     return mode;
 }
 
@@ -140,8 +146,8 @@ static void showDiagnosticAlert() {
         sysctlbyname("hw.machine", machine, &len, NULL, 0);
         
         NSString *message = [NSString stringWithFormat:
-            @"IB3DeviceSpoof v9 诊断 ✅\n"
-            @"（iPhone X 伪装版 - 含屏幕）\n\n"
+            @"IB3DeviceSpoof v10 诊断 ✅\n"
+            @"（iPhone X 伪装版 - 含屏幕伪装）\n\n"
             @"伪装型号: %s\n"
             @"当前 hw.machine: %s\n"
             @"sysctlbyname 调用: %d 次\n\n"
@@ -159,7 +165,7 @@ static void showDiagnosticAlert() {
             scale,
             nativeScale];
         
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Tweak v9.1 (iPhone X)"
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"️ 这是 V10 新版！️"
                                                                        message:message
                                                                 preferredStyle:UIAlertControllerStyleAlert];
         
@@ -176,11 +182,24 @@ static void showDiagnosticAlert() {
         
         UIWindow *window = [UIApplication sharedApplication].keyWindow;
         if (!window) {
-            window = [[UIApplication sharedApplication].windows firstObject];
+            if (@available(iOS 13.0, *)) {
+                NSSet *scenes = [UIApplication sharedApplication].connectedScenes;
+                for (UIScene *scene in scenes) {
+                    if (scene.activationState == UISceneActivationStateForegroundActive) {
+                        window = ((UIWindowScene *)scene).windows.firstObject;
+                        break;
+                    }
+                }
+            }
         }
-        UIViewController *rootVC = window.rootViewController;
-        if (rootVC) {
-            [rootVC presentViewController:alert animated:YES completion:nil];
+        if (!window) {
+            window = [[UIApplication sharedApplication].delegate window];
+        }
+        if (window) {
+            UIViewController *rootVC = window.rootViewController;
+            if (rootVC) {
+                [rootVC presentViewController:alert animated:YES completion:nil];
+            }
         }
     });
 }
@@ -195,7 +214,7 @@ static void ib3_spoof_initialize() {
     struct rebinding r3 = { .name = "uname", .replacement = replaced_uname, .replaced = (void **)&original_uname };
     rebind_symbols((struct rebinding[]){r1, r2, r3}, 3);
     
-    fprintf(stderr, "[IB3 v9] C hooks ready\n");
+    fprintf(stderr, "[IB3 v10] C hooks ready\n");
     
     dispatch_async(dispatch_get_main_queue(), ^{
         @autoreleasepool {
@@ -214,11 +233,11 @@ static void ib3_spoof_initialize() {
             Class UIScreenClass = objc_getClass("UIScreen");
             if (UIScreenClass) {
                 struct { SEL sel; IMP *original; IMP replacement; } hooks[] = {
-                    { @selector(bounds), &original_screen_bounds, (IMP)replaced_screen_bounds },
-                    { @selector(nativeBounds), &original_screen_nativeBounds, (IMP)replaced_screen_nativeBounds },
-                    { @selector(scale), &original_screen_scale, (IMP)replaced_screen_scale },
-                    { @selector(nativeScale), &original_screen_nativeScale, (IMP)replaced_screen_nativeScale },
-                    { @selector(currentMode), &original_screen_currentMode, (IMP)replaced_screen_currentMode },
+                    { @selector(bounds), (IMP *)&orig_UIScreen_bounds, (IMP)hooked_UIScreen_bounds },
+                    { @selector(nativeBounds), (IMP *)&orig_UIScreen_nativeBounds, (IMP)hooked_UIScreen_nativeBounds },
+                    { @selector(scale), (IMP *)&orig_UIScreen_scale, (IMP)hooked_UIScreen_scale },
+                    { @selector(nativeScale), (IMP *)&orig_UIScreen_nativeScale, (IMP)hooked_UIScreen_nativeScale },
+                    { @selector(currentMode), (IMP *)&orig_UIScreen_currentMode, (IMP)hooked_UIScreen_currentMode },
                 };
                 for (int i = 0; i < 5; i++) {
                     Method m = class_getInstanceMethod(UIScreenClass, hooks[i].sel);
@@ -229,7 +248,7 @@ static void ib3_spoof_initialize() {
                 }
             }
             
-            NSLog(@"[IB3 v9] All hooks ready. Spoofing as %s", SPOOFED_DEVICE_MODEL);
+            NSLog(@"[IB3 v10] All hooks ready. Spoofing as %s", SPOOFED_DEVICE_MODEL);
             
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
