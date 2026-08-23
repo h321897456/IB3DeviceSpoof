@@ -23,6 +23,7 @@ jobs:
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -miphoneos-version-min=16.0 \
           -framework Foundation \
+          -framework CoreGraphics \
           -framework UIKit \
           -framework QuartzCore \
           -framework OpenGLES \
