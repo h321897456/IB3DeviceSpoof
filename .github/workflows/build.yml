@@ -1,4 +1,4 @@
-name: Build IB3DeviceSpoof v13 dylib
+name: Build IB3DeviceSpoof v14 dylib
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.c -o fishhook.c
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.h -o fishhook.h
 
-    - name: 编译 dylib (v13 诊断增强版)
+    - name: 编译 dylib (v14 纯诊断版)
       run: |
         clang -dynamiclib -arch arm64 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
@@ -29,7 +29,7 @@ jobs:
           -framework OpenGLES \
           -fobjc-arc \
           -o IB3DeviceSpoof.dylib \
-          IB3DeviceSpoof_v13.m fishhook.c
+          IB3DeviceSpoof_v14.m fishhook.c
 
     - name: 验证编译结果
       run: |
