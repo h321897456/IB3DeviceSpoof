@@ -1,4 +1,4 @@
-name: Build ElingFullscreen v20 dylib
+name: Build ElingFullscreen v21 dylib
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.c -o fishhook.c
         curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.h -o fishhook.h
 
-    - name: 编译 dylib (恶灵全屏 v20 - FBO 诊断版)
+    - name: 编译 dylib (恶灵全屏 v21 - UIKit 层)
       run: |
         clang -dynamiclib -arch arm64 \
           -DGLES_SILENCE_DEPRECATION \
@@ -32,7 +32,7 @@ jobs:
           -framework OpenGLES \
           -fobjc-arc \
           -o ElingFullscreen.dylib \
-          ElingFullscreen_v20.m fishhook.c
+          ElingFullscreen_v21.m fishhook.c
 
     - name: 验证编译结果
       run: |
