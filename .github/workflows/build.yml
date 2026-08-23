@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: macos-latest
-
+    
     steps:
     - uses: actions/checkout@v4
 
@@ -19,13 +19,14 @@ jobs:
 
     - name: 编译 dylib (v10 iPhone X 伪装版)
       run: |
-        clang -fobjc-arc -dynamiclib -arch arm64 \
-          -Wno-deprecated-declarations \
+        clang -dynamiclib -arch arm64 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
-          -miphoneos-version-min=16.0 \
+          -miphoneos-version-min=11.0 \
+          -Wno-deprecated-declarations \
           -framework Foundation \
           -framework CoreGraphics \
           -framework UIKit \
+          -fobjc-arc \
           -o IB3DeviceSpoof.dylib \
           IB3DeviceSpoof_v10.m fishhook.c
 
