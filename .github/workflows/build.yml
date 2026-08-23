@@ -1,4 +1,4 @@
-name: Build ElingFullscreen dylib
+name: Build IB3DeviceSpoof v19 dylib
 
 on:
   push:
@@ -12,14 +12,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: 下载最新版 fishhook
+    - name: 下载 fishhook
       run: |
-        curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.c -o fishhook.c
-        curl -L https://raw.githubusercontent.com/facebook/fishhook/main/fishhook.h -o fishhook.h
+        curl -L https://raw.githubusercontent.com/facebook/fishhook/master/fishhook.c -o fishhook.c
+        curl -L https://raw.githubusercontent.com/facebook/fishhook/master/fishhook.h -o fishhook.h
 
-    - name: 编译 dylib (恶灵全屏)
+    - name: 编译 dylib (v19 EAGLView 深度 Hook 版)
       run: |
         clang -dynamiclib -arch arm64 \
+          -DGLES_SILENCE_DEPRECATION \
+          -DSPOOFED_CPU_COUNT=4 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -miphoneos-version-min=16.0 \
           -framework Foundation \
@@ -28,16 +30,16 @@ jobs:
           -framework QuartzCore \
           -framework OpenGLES \
           -fobjc-arc \
-          -o ElingFullscreen.dylib \
-          ElingFullscreen.m fishhook.c
+          -o IB3DeviceSpoof.dylib \
+          IB3DeviceSpoof_v19.m fishhook.c
 
     - name: 验证编译结果
       run: |
-        file ElingFullscreen.dylib
-        ls -lh ElingFullscreen.dylib
+        file IB3DeviceSpoof.dylib
+        ls -lh IB3DeviceSpoof.dylib
 
     - name: 上传产物
       uses: actions/upload-artifact@v4
       with:
-        name: ElingFullscreen.dylib
-        path: ElingFullscreen.dylib
+        name: IB3DeviceSpoof.dylib
+        path: IB3DeviceSpoof.dylib
